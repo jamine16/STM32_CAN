@@ -53,12 +53,14 @@ Linux SocketCAN quick test
 - You should see responses from 0x7E8 with FF/CF frames carrying the VIN.
 
 Arduino IDE usage (MCP2515)
-1) Install STM32 core (Tools -> Board Manager -> STM32 MCU based boards) if using STM32 boards with Arduino, or use any Arduino-compatible MCU with MCP2515.
-2) Install MCP2515 library (e.g., `autowp/arduino-mcp2515`) via Library Manager.
-3) Open `arduino/ecu_sim/ecu_sim.ino` in Arduino IDE.
-4) Adjust pins at top of sketch (CS=10, INT=2) and crystal setting (16 MHz vs 8 MHz) if needed.
-5) Upload. The sketch listens on 0x7DF and responds on 0x7E8 with VIN via ISO-TP.
-6) Test with a CAN tool as shown in the Linux section.
+Option A: STM32 internal CAN (TJA1050 transceiver)
+1) Install STM32 core (Tools -> Board Manager -> STM32 MCU based boards).
+2) Wire a TJA1050 to STM32F105: PA12 (CAN_TX) -> TXD, PA11 (CAN_RX) -> RXD, CANH/CANL to bus, 120 Ω at bus ends, 5V to TJA1050.
+3) Open `arduino/ecu_sim/ecu_sim.ino` and select your STM32F105 board/port.
+4) Upload. The sketch uses the MCU's bxCAN and responds to 0x7DF on 0x7E8.
+
+Option B: External MCP2515 (legacy)
+If you prefer MCP2515, use the previous revision or adapt using `autowp/arduino-mcp2515`.
 
 Notes
 - This code assumes standard (11-bit) CAN IDs.

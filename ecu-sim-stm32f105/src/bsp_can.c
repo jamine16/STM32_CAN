@@ -90,3 +90,18 @@ HAL_StatusTypeDef CAN_BSP_Send(uint32_t std_id, const uint8_t *data, uint8_t len
     return HAL_CAN_AddTxMessage(&hcan, &header, payload, &mailbox);
 }
 
+void CAN_BSP_PollRx(void)
+{
+    // Polling RX helper for environments where ISR isn't hooked by the Arduino core.
+    CAN_RxHeaderTypeDef header;
+    uint8_t data[8];
+    while (HAL_CAN_GetRxFifoFillLevel(&hcan, CAN_RX_FIFO0) > 0) {
+        if (HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &header, data) == HAL_OK) {
+            extern void isotp_on_can_rx(uint32_t std_id, const uint8_t *data, uint8_t len);
+            isotp_on_can_rx(header.StdId, data, header.DLC);
+        } else {
+            break;
+        }
+    }
+}
+
