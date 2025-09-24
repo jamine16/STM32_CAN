@@ -1,6 +1,7 @@
 #include "isotp.h"
 #include "bsp_can.h"
 #include <string.h>
+#include <Arduino.h>
 
 // Minimal ISO-TP implementation sufficient for VIN (Mode 09 PID 02) response.
 
@@ -33,7 +34,7 @@ static struct {
 
 static uint32_t millis(void)
 {
-    return HAL_GetTick();
+    return (uint32_t)::millis();
 }
 
 void isotp_init(uint32_t request_id, uint32_t response_id, uint32_t tester_id_base)
