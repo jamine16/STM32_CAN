@@ -32,9 +32,9 @@ static struct {
     uint32_t fc_deadline_tick;
 } ctx;
 
-static uint32_t millis(void)
+static uint32_t isotp_now_ms(void)
 {
-    return (uint32_t)::millis();
+    return (uint32_t)millis();
 }
 
 void isotp_init(uint32_t request_id, uint32_t response_id, uint32_t tester_id_base)
@@ -81,7 +81,7 @@ static void isotp_send_first_frame(const uint8_t *payload, uint16_t length)
     ctx.block_counter = 0;
     ctx.block_size = 0; // until FC arrives
     ctx.st_min_ms = 0;
-    ctx.fc_deadline_tick = millis() + 1000; // 1s to receive FC
+    ctx.fc_deadline_tick = isotp_now_ms() + 1000; // 1s to receive FC
 }
 
 void isotp_send_response(const uint8_t *payload, uint16_t length)
@@ -125,11 +125,11 @@ void isotp_on_can_rx(uint32_t std_id, const uint8_t *data, uint8_t len)
                 ctx.block_size = bs;
                 ctx.st_min_ms = (st <= 0x7F) ? st : 0; // ignore microsecond encodings for simplicity
                 ctx.tx_state = ISOTP_SENDING_CF;
-                ctx.next_allowed_tick = millis();
+                ctx.next_allowed_tick = isotp_now_ms();
                 ctx.block_counter = 0;
             } else if (fs == 0x01) {
                 // Wait: extend deadline, do nothing
-                ctx.fc_deadline_tick = millis() + 1000;
+                ctx.fc_deadline_tick = isotp_now_ms() + 1000;
             } else {
                 // Overflow/Abort
                 ctx.tx_state = ISOTP_IDLE;
@@ -156,7 +156,7 @@ void isotp_on_can_rx(uint32_t std_id, const uint8_t *data, uint8_t len)
 
 void isotp_poll(void)
 {
-    uint32_t now = millis();
+    uint32_t now = isotp_now_ms();
 
     if (ctx.tx_state == ISOTP_WAIT_FC) {
         if (now >= ctx.fc_deadline_tick) {
