@@ -1,4 +1,5 @@
 #include "bsp_can.h"
+#include "isotp.h"
 
 CAN_HandleTypeDef hcan;
 
@@ -102,6 +103,55 @@ void CAN_BSP_PollRx(void)
         } else {
             break;
         }
+    }
+}
+
+// HAL MSP init for CAN1: GPIO and NVIC
+void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
+{
+    if (canHandle->Instance == CAN1) {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        // PA11 CAN_RX, PA12 CAN_TX
+        GPIO_InitStruct.Pin = GPIO_PIN_11;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = GPIO_PIN_12;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        // NVIC for CAN RX0
+        HAL_NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
+    }
+}
+
+void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
+{
+    if (canHandle->Instance == CAN1) {
+        HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11 | GPIO_PIN_12);
+        HAL_NVIC_DisableIRQ(USB_LP_CAN1_RX0_IRQn);
+        __HAL_RCC_CAN1_CLK_DISABLE();
+    }
+}
+
+// IRQ handler wrapper for RX FIFO 0
+void USB_LP_CAN1_RX0_IRQHandler(void)
+{
+    HAL_CAN_IRQHandler(&hcan);
+}
+
+// HAL RX callback -> ISO-TP
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan_arg)
+{
+    if (hcan_arg->Instance != CAN1) return;
+    CAN_RxHeaderTypeDef header;
+    uint8_t data[8];
+    if (HAL_CAN_GetRxMessage(hcan_arg, CAN_RX_FIFO0, &header, data) == HAL_OK) {
+        isotp_on_can_rx(header.StdId, data, header.DLC);
     }
 }
 

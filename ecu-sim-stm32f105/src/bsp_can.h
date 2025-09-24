@@ -1,7 +1,11 @@
 #ifndef BSP_CAN_H
 #define BSP_CAN_H
 
+#ifndef HAL_CAN_MODULE_ENABLED
+#define HAL_CAN_MODULE_ENABLED
+#endif
 #include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal_can.h"
 #include <stdint.h>
 
 #ifdef __cplusplus
