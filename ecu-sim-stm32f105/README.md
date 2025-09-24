@@ -28,6 +28,7 @@ Project Structure
 - src/isotp.c, src/isotp.h: Minimal ISO-TP segmentation and FlowControl handling
 - src/obd.c, src/obd.h: OBD-II Mode 09 PID 02 handler (VIN)
 - src/main.c: Example glue code
+- arduino/ecu_sim/ecu_sim.ino: Arduino sketch using MCP2515 CAN adapter
 
 Integration (STM32CubeIDE / STM32CubeMX)
 1) Create a new STM32CubeIDE project for your exact STM32F105 part using STM32CubeMX initialization.
@@ -50,6 +51,14 @@ Linux SocketCAN quick test
 - Observe bus: `candump can0`
 - Send VIN request (ISO-TP SF 0x02, 0x09, 0x02 padded): `cansend can0 7DF#02090200000000`
 - You should see responses from 0x7E8 with FF/CF frames carrying the VIN.
+
+Arduino IDE usage (MCP2515)
+1) Install STM32 core (Tools -> Board Manager -> STM32 MCU based boards) if using STM32 boards with Arduino, or use any Arduino-compatible MCU with MCP2515.
+2) Install MCP2515 library (e.g., `autowp/arduino-mcp2515`) via Library Manager.
+3) Open `arduino/ecu_sim/ecu_sim.ino` in Arduino IDE.
+4) Adjust pins at top of sketch (CS=10, INT=2) and crystal setting (16 MHz vs 8 MHz) if needed.
+5) Upload. The sketch listens on 0x7DF and responds on 0x7E8 with VIN via ISO-TP.
+6) Test with a CAN tool as shown in the Linux section.
 
 Notes
 - This code assumes standard (11-bit) CAN IDs.

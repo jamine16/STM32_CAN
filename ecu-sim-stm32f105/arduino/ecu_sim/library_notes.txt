@@ -1,0 +1,3 @@
+Requires Arduino MCP2515 library that provides <mcp2515.h> with can_frame API and MCP2515 class (e.g., autowp/arduino-mcp2515).
+Pins: CS=10, INT=2 by default (adjust in ecu_sim.ino).
+Bitrate: 500 kbps, MCP clock 16 MHz (change if your module uses 8 MHz).
